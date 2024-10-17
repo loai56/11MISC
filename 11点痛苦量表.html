@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>请评价你当前的晕车状态0-10分</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        input[type="text"] {
+            margin: 10px;
+            padding: 5px;
+            width: 80%;
+        }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .rating-group {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 600px;
+        }
+        .rating-button {
+            padding: 15px;
+            font-size: 18px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        .rating-button:hover {
+            background-color: #dcdcdc;
+        }
+        .annotation {
+            background-color: #e0e0e0;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: left;
+            width: 25%;
+        }
+        .rating-buttons {
+            display: flex;
+            gap: 10px;
+            width: 75%;
+        }
+    </style>
+</head>
+<body>
+    <h1>请评价你当前的晕车状态0-10分</h1>
+    <form id="rating-form">
+        <label for="name">填写姓名：</label>
+        <input type="text" id="name" name="name" placeholder="请输入您的姓名" required>
+        <br>
+        <div class="button-container">
+            <!-- 0分 -->
+            <div class="rating-group">
+                <div class="annotation">没有症状</div>
+                <div class="rating-buttons">
+                    <button type="button" class="rating-button" data-score="0">0<br>没有症状</br></button>
+                </div>
+            </div>
+            
+            <!-- 1分 -->
+            <div class="rating-group">
+                <div class="annotation">有些不适但没有症状</div>
+                <div class="rating-buttons">
+                    <button type="button" class="rating-button" data-score="1">1<br>有些不适但没有症状</br></button>
+                </div>
+            </div>
+
+            <!-- 2-5分 -->
+            <div class="rating-group">
+                <div class="annotation">没有恶心，但头晕、头疼、胃部不适、出汗、疲惫、视力模糊、打哈欠、打嗝等</div>
+                <div class="rating-buttons">
+                    <button type="button" class="rating-button" data-score="2">2<br>模糊的</br></button>
+                    <button type="button" class="rating-button" data-score="3">3<br>轻微的</br></button>
+                    <button type="button" class="rating-button" data-score="4">4<br>相当的</br></button>
+                    <button type="button" class="rating-button" data-score="5">5<br>严重的</br></button>
+                </div>
+            </div>
+
+            <!-- 6-9分 -->
+            <div class="rating-group">
+                <div class="annotation">恶心</div>
+                <div class="rating-buttons">
+                    <button type="button" class="rating-button" data-score="6">6<br>模糊的</br></button>
+                    <button type="button" class="rating-button" data-score="7">7<br>轻微的</br></button>
+                    <button type="button" class="rating-button" data-score="8">8<br>相当的</br></button>
+                    <button type="button" class="rating-button" data-score="9">9<br>严重的</br></button>
+                </div>
+            </div>
+
+            <!-- 10分 -->
+            <div class="rating-group">
+                <div class="annotation">呕吐</div>
+                <div class="rating-buttons">
+                    <button type="button" class="rating-button" data-score="10">10<br>呕吐</br></button>
+                </div>
+            </div>
+        </div>
+    </form>
+    <p id="response-message"></p>
+    
+    <script>
+        // 绑定所有评分按钮的点击事件
+        document.querySelectorAll('.rating-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const score = this.getAttribute('data-score');
+                const name = document.getElementById('name').value;
+                const timestamp = new Date().toISOString();
+
+                if (!name) {
+                    alert("请填写您的姓名！");
+                    return;
+                }
+
+                // 计算评价次数，假设用户每次提交的评分都会增加评价次数
+                let ratingCount = localStorage.getItem(name) || 0;
+                ratingCount++;
+                localStorage.setItem(name, ratingCount);
+
+                // 发送评分数据
+                fetch('/submit-rating', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        rating_count: ratingCount,
+                        score: score,
+                        timestamp: timestamp
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("response-message").textContent = `评分已提交！这是您第 ${ratingCount} 次评价。`;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById("response-message").textContent = '提交失败，请稍后再试。';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
